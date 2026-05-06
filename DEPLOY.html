@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>TecchTI — Guia de Deploy</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; font-size: 14px; color: #1e293b; background: #f8fafc; padding: 0; }
+  .page { max-width: 860px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  /* Header */
+  .hero { background: linear-gradient(135deg, #0159a0 0%, #0c8fe6 100%); color: white; border-radius: 16px; padding: 36px 40px; margin-bottom: 40px; }
+  .hero h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
+  .hero p  { opacity: .8; margin-top: 8px; font-size: 15px; }
+  .hero .badges { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
+  .badge { background: rgba(255,255,255,.15); padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; }
+
+  /* Progress bar */
+  .progress-bar { display: flex; gap: 0; margin-bottom: 40px; border-radius: 12px; overflow: hidden; }
+  .progress-step { flex: 1; padding: 12px 8px; text-align: center; font-size: 12px; font-weight: 600; }
+  .step-done  { background: #dcfce7; color: #166534; }
+  .step-todo  { background: #dbeafe; color: #1e40af; }
+  .step-later { background: #fef9c3; color: #854d0e; }
+
+  /* Steps */
+  .phase { margin-bottom: 40px; }
+  .phase-title { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+  .phase-num { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 14px; flex-shrink: 0; }
+  .num-blue   { background: #dbeafe; color: #1d4ed8; }
+  .num-green  { background: #dcfce7; color: #166534; }
+  .num-purple { background: #ede9fe; color: #6d28d9; }
+  .num-amber  { background: #fef9c3; color: #854d0e; }
+  .phase-title h2 { font-size: 18px; font-weight: 700; }
+  .phase-title .est { font-size: 12px; color: #64748b; font-weight: 400; margin-left: 4px; }
+
+  .step { background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 20px 24px; margin-bottom: 12px; }
+  .step h3 { font-size: 14px; font-weight: 700; color: #0f172a; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+  .step h3 .num { background: #f1f5f9; color: #475569; border-radius: 6px; padding: 2px 8px; font-size: 11px; font-weight: 700; }
+  .step p { color: #475569; line-height: 1.6; margin-bottom: 8px; }
+  .step p:last-child { margin-bottom: 0; }
+
+  code, pre { font-family: 'Consolas', 'Courier New', monospace; }
+  .code-block { background: #0f172a; color: #e2e8f0; border-radius: 10px; padding: 16px 20px; margin: 10px 0; overflow-x: auto; }
+  .code-block pre { font-size: 13px; line-height: 1.7; white-space: pre; }
+  .code-block .comment { color: #94a3b8; }
+  .code-block .key    { color: #7dd3fc; }
+  .code-block .val    { color: #86efac; }
+  .code-block .cmd    { color: #c084fc; }
+  .inline-code { background: #f1f5f9; color: #0f172a; padding: 1px 6px; border-radius: 4px; font-size: 13px; }
+
+  .tip  { background: #eff6ff; border-left: 3px solid #3b82f6; border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 10px 0; font-size: 13px; color: #1e40af; }
+  .warn { background: #fffbeb; border-left: 3px solid #f59e0b; border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 10px 0; font-size: 13px; color: #92400e; }
+  .ok   { background: #f0fdf4; border-left: 3px solid #22c55e; border-radius: 0 8px 8px 0; padding: 12px 16px; margin: 10px 0; font-size: 13px; color: #166534; }
+
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .card-sm { background: white; border: 1px solid #e2e8f0; border-radius: 10px; padding: 16px; }
+  .card-sm h4 { font-size: 13px; font-weight: 700; margin-bottom: 8px; }
+  .card-sm ul { padding-left: 16px; color: #475569; font-size: 13px; line-height: 1.8; }
+
+  .check-list { list-style: none; padding: 0; }
+  .check-list li { display: flex; align-items: flex-start; gap: 8px; padding: 5px 0; font-size: 13px; color: #374151; }
+  .check-list li::before { content: "○"; color: #3b82f6; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+  .sql-block { background: #1e1b4b; color: #c7d2fe; border-radius: 10px; padding: 16px 20px; margin: 10px 0; }
+  .sql-block pre { font-size: 13px; line-height: 1.7; font-family: 'Consolas', monospace; }
+
+  @media (max-width: 600px) { .two-col { grid-template-columns: 1fr; } .hero { padding: 24px; } }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Hero -->
+  <div class="hero">
+    <h1>TecchTI — Guia de Deploy Completo</h1>
+    <p>Passo a passo para colocar o sistema em produção do zero</p>
+    <div class="badges">
+      <span class="badge">React + Vite</span>
+      <span class="badge">Supabase</span>
+      <span class="badge">Vercel</span>
+      <span class="badge">PostgreSQL</span>
+      <span class="badge">v1.1-FINAL</span>
+    </div>
+  </div>
+
+  <!-- Progress -->
+  <div class="progress-bar">
+    <div class="progress-step step-done">1. Supabase<br>Projeto</div>
+    <div class="progress-step step-done">2. Banco SQL<br>Migration</div>
+    <div class="progress-step step-done">3. Storage<br>Buckets</div>
+    <div class="progress-step step-todo">4. Local<br>.env</div>
+    <div class="progress-step step-todo">5. Deploy<br>Vercel</div>
+    <div class="progress-step step-todo">6. 1º Admin<br>Usuário</div>
+    <div class="progress-step step-later">7. Dados<br>Iniciais</div>
+  </div>
+
+  <!-- FASE 1: Supabase -->
+  <div class="phase">
+    <div class="phase-title">
+      <div class="phase-num num-blue">1</div>
+      <h2>Criar o projeto no Supabase <span class="est">~15 min</span></h2>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">1.1</span> Criar conta e projeto</h3>
+      <p>Acesse <strong>app.supabase.com</strong> → clique em <strong>New Project</strong>.</p>
+      <div class="code-block"><pre><span class="comment"># Preencha:</span>
+<span class="key">Name:</span>        <span class="val">gestao-tecchti</span>
+<span class="key">Password:</span>    <span class="val">(senha forte — anote!)</span>
+<span class="key">Region:</span>      <span class="val">South America (São Paulo)</span></pre></div>
+      <div class="tip">Aguarde ~2 minutos para o projeto inicializar completamente.</div>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">1.2</span> Pegar as credenciais</h3>
+      <p>No painel do projeto: <strong>Settings → API</strong></p>
+      <div class="code-block"><pre><span class="comment"># Copie e guarde:</span>
+<span class="key">Project URL:</span>   <span class="val">https://xxxxxxxxxxx.supabase.co</span>
+<span class="key">anon (public):</span> <span class="val">eyJhbGciOiJIUzI1NiIs...</span></pre></div>
+      <div class="warn">Nunca use a chave <strong>service_role</strong> no frontend — só a <strong>anon</strong>.</div>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">1.3</span> Criar os buckets de Storage</h3>
+      <p>Vá em <strong>Storage → New bucket</strong> e crie os 4 buckets:</p>
+      <div class="two-col" style="margin-top:10px">
+        <div class="card-sm">
+          <h4>Buckets públicos</h4>
+          <ul>
+            <li><code>os-fotos</code> — fotos das OS</li>
+            <li><code>logos</code> — logo da empresa</li>
+          </ul>
+        </div>
+        <div class="card-sm">
+          <h4>Buckets privados</h4>
+          <ul>
+            <li><code>assinaturas</code> — assinaturas digitais</li>
+            <li><code>pdfs</code> — PDFs gerados</li>
+          </ul>
+        </div>
+      </div>
+      <div class="tip" style="margin-top:12px">Para os buckets públicos: após criar, vá em <strong>Policies → Allow public access</strong>.</div>
+    </div>
+  </div>
+
+  <!-- FASE 2: SQL -->
+  <div class="phase">
+    <div class="phase-title">
+      <div class="phase-num num-green">2</div>
+      <h2>Executar o banco de dados <span class="est">~5 min</span></h2>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">2.1</span> Executar a migration SQL</h3>
+      <p>No Supabase: <strong>SQL Editor → New query</strong></p>
+      <p>Abra o arquivo <span class="inline-code">supabase-migration.sql</span> do projeto, copie todo o conteúdo e cole no editor. Clique em <strong>Run</strong>.</p>
+      <div class="ok">✓ O script cria 14 tabelas, triggers, RLS, funções e dados iniciais automaticamente.</div>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">2.2</span> Verificar as tabelas</h3>
+      <p>Vá em <strong>Table Editor</strong>. Você deve ver estas tabelas:</p>
+      <div class="code-block"><pre>profiles          clientes          servicos
+categorias_servico  produtos        estoque_movimentos
+orcamentos        orcamento_itens   ordens_servico
+os_itens          os_checklist      os_fotos
+financeiro_lancamentos              empresa_config</pre></div>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">2.3</span> Inserir dados da empresa</h3>
+      <p>Execute no SQL Editor para preencher os dados iniciais da TecchTI:</p>
+      <div class="sql-block"><pre>UPDATE empresa_config SET
+  nome_fantasia      = 'TecchTI',
+  razao_social       = 'TecchTI Soluções de Informática',
+  cnpj               = '00.000.000/0000-00',
+  inscricao_municipal = '000000',
+  regime_tributario  = 'simples_nacional',
+  cidade             = 'Garopaba',
+  estado             = 'SC'
+WHERE id = (SELECT id FROM empresa_config LIMIT 1);</pre></div>
+    </div>
+  </div>
+
+  <!-- FASE 3: Local -->
+  <div class="phase">
+    <div class="phase-title">
+      <div class="phase-num num-purple">3</div>
+      <h2>Configurar e testar localmente <span class="est">~10 min</span></h2>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">3.1</span> Criar o arquivo .env.local</h3>
+      <p>Na pasta do projeto, duplique o <span class="inline-code">.env.example</span> para <span class="inline-code">.env.local</span>:</p>
+      <div class="code-block"><pre><span class="cmd">cp .env.example .env.local</span></pre></div>
+      <p>Edite o <span class="inline-code">.env.local</span> com os dados do passo 1.2:</p>
+      <div class="code-block"><pre><span class="key">VITE_SUPABASE_URL</span>=<span class="val">https://SEU_PROJECT_ID.supabase.co</span>
+<span class="key">VITE_SUPABASE_ANON_KEY</span>=<span class="val">sua_anon_key_aqui</span></pre></div>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">3.2</span> Instalar e rodar</h3>
+      <div class="code-block"><pre><span class="cmd">npm install</span>
+<span class="cmd">npm run dev</span>
+<span class="comment"># Acesse: http://localhost:5173</span></pre></div>
+      <div class="tip">Você verá a tela de login. O próximo passo cria o primeiro usuário.</div>
+    </div>
+  </div>
+
+  <!-- FASE 4: Primeiro usuário -->
+  <div class="phase">
+    <div class="phase-title">
+      <div class="phase-num num-green">4</div>
+      <h2>Criar o primeiro usuário admin <span class="est">~5 min</span></h2>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">4.1</span> Criar o usuário no Supabase Auth</h3>
+      <p>No Supabase: <strong>Authentication → Users → Add user</strong></p>
+      <div class="code-block"><pre><span class="key">Email:</span>    <span class="val">gabriel@tecchti.com.br</span>
+<span class="key">Password:</span> <span class="val">(senha segura)</span>
+<span class="comment"># Marque: Auto Confirm User</span></pre></div>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">4.2</span> Promover a admin no banco</h3>
+      <p>Copie o <strong>UUID</strong> do usuário (coluna User UID na lista de Auth Users). Depois execute no SQL Editor:</p>
+      <div class="sql-block"><pre>UPDATE profiles SET
+  role = 'admin',
+  nome = 'Gabriel',
+  telefone = '48999999999'
+WHERE email = 'gabriel@tecchti.com.br';</pre></div>
+      <div class="ok">✓ Agora você consegue fazer login com acesso total ao sistema.</div>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">4.3</span> Testar o login</h3>
+      <p>Acesse <span class="inline-code">http://localhost:5173</span>, faça login com o e-mail e senha criados. Você deve ver o Dashboard.</p>
+      <div class="tip">Se der erro de RLS, verifique se o trigger <code>handle_new_user</code> foi criado. Ele cria o perfil automaticamente ao criar o usuário no Auth.</div>
+    </div>
+  </div>
+
+  <!-- FASE 5: Deploy Vercel -->
+  <div class="phase">
+    <div class="phase-title">
+      <div class="phase-num num-blue">5</div>
+      <h2>Deploy na Vercel <span class="est">~15 min</span></h2>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">5.1</span> Opção A — Deploy pelo GitHub (recomendado)</h3>
+      <p><strong>1.</strong> Suba o projeto para um repositório GitHub (pode ser privado):</p>
+      <div class="code-block"><pre><span class="cmd">git init</span>
+<span class="cmd">git add .</span>
+<span class="cmd">git commit -m "TecchTI v1.1 — sistema completo"</span>
+<span class="cmd">git remote add origin https://github.com/SEU_USUARIO/gestao-tecchti.git</span>
+<span class="cmd">git push -u origin main</span></pre></div>
+      <p><strong>2.</strong> Acesse <strong>vercel.com</strong> → <strong>New Project</strong> → importe o repositório.</p>
+      <p><strong>3.</strong> Na tela de configuração, Vercel detecta automaticamente que é Vite. Clique em <strong>Deploy</strong>.</p>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">5.2</span> Opção B — Deploy direto pelo CLI</h3>
+      <div class="code-block"><pre><span class="cmd">npm install -g vercel</span>
+<span class="cmd">npm run build</span>
+<span class="cmd">vercel --prod</span>
+<span class="comment"># Siga as instruções do CLI</span></pre></div>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">5.3</span> Adicionar variáveis de ambiente na Vercel</h3>
+      <p>No painel da Vercel: <strong>seu projeto → Settings → Environment Variables</strong></p>
+      <div class="code-block"><pre><span class="key">VITE_SUPABASE_URL</span>      = <span class="val">https://SEU_PROJECT_ID.supabase.co</span>
+<span class="key">VITE_SUPABASE_ANON_KEY</span> = <span class="val">sua_anon_key_aqui</span></pre></div>
+      <p>Após adicionar, clique em <strong>Redeploy</strong> para aplicar.</p>
+      <div class="warn">Sem essas variáveis, o sistema vai exibir erro de configuração na tela de login.</div>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">5.4</span> Configurar o domínio (opcional)</h3>
+      <p>Vercel → <strong>Settings → Domains</strong> → adicione seu domínio personalizado.</p>
+      <p>Sugestão de subdomínio para a TecchTI: <span class="inline-code">gestao.tecchti.com.br</span></p>
+      <div class="tip">O <span class="inline-code">vercel.json</span> já está configurado com SPA routing e headers de segurança. Não precisa alterar nada.</div>
+    </div>
+  </div>
+
+  <!-- FASE 6: Dados iniciais -->
+  <div class="phase">
+    <div class="phase-title">
+      <div class="phase-num num-amber">6</div>
+      <h2>Cadastrar dados iniciais <span class="est">~2h</span></h2>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">6.1</span> Checklist de cadastros</h3>
+      <ul class="check-list">
+        <li>Configurações → Empresa: preencher CNPJ, endereço, telefone, logo</li>
+        <li>Serviços: cadastrar todos os serviços que a TecchTI oferece com preços</li>
+        <li>Categorias: Câmeras e CFTV, Redes, Computadores, DVR, Suporte Remoto</li>
+        <li>Estoque: cadastrar câmeras, cabos, conectores, fontes e materiais em estoque</li>
+        <li>Clientes: importar ou cadastrar os clientes existentes</li>
+        <li>Financeiro: lançar contas a pagar e receber em aberto</li>
+        <li>Usuários: criar perfis para técnicos e outros colaboradores</li>
+      </ul>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">6.2</span> Criar usuários da equipe</h3>
+      <p>Repita o processo do passo 4 para cada membro da equipe, usando os roles corretos:</p>
+      <div class="two-col" style="margin-top:10px">
+        <div class="card-sm">
+          <h4>Roles disponíveis</h4>
+          <ul>
+            <li><code>admin</code> — acesso total</li>
+            <li><code>tecnico</code> — OS e clientes</li>
+            <li><code>financeiro</code> — financeiro + relatórios</li>
+            <li><code>vendedor</code> — orçamentos</li>
+          </ul>
+        </div>
+        <div class="card-sm">
+          <h4>SQL para mudar role</h4>
+          <pre style="font-size:12px;line-height:1.6;color:#475569">UPDATE profiles
+SET role = 'tecnico'
+WHERE email =
+  'tecnico@tecchti.com';</pre>
+        </div>
+      </div>
+    </div>
+
+    <div class="step">
+      <h3><span class="num">6.3</span> Testar fluxo completo</h3>
+      <p>Realize um atendimento completo de teste para validar o sistema:</p>
+      <ul class="check-list">
+        <li>Cadastrar um cliente fictício</li>
+        <li>Gerar um orçamento com 2 serviços → visualizar PDF → copiar link WhatsApp</li>
+        <li>Converter o orçamento em OS → abrir no celular</li>
+        <li>Na OS: marcar checklist → tirar uma foto → salvar assinatura → concluir</li>
+        <li>Lançar a receita no Financeiro → marcar como pago</li>
+        <li>Verificar se o Dashboard atualiza os KPIs</li>
+        <li>Gerar relatório do mês e verificar o PDF</li>
+      </ul>
+      <div class="ok">✓ Se todos os passos funcionarem, o sistema está pronto para uso.</div>
+    </div>
+  </div>
+
+  <!-- Troubleshooting -->
+  <div class="phase">
+    <div class="phase-title">
+      <div class="phase-num num-amber">?</div>
+      <h2>Problemas comuns</h2>
+    </div>
+    <div class="step">
+      <h3>Erro: "relation profiles does not exist"</h3>
+      <p>O SQL não foi executado completamente. Vá ao SQL Editor e execute o <span class="inline-code">supabase-migration.sql</span> novamente.</p>
+    </div>
+    <div class="step">
+      <h3>Login aceita mas redireciona para /login de volta</h3>
+      <p>O perfil não foi criado. Execute no SQL Editor:</p>
+      <div class="sql-block"><pre>SELECT * FROM profiles WHERE email = 'seu@email.com';
+<span style="color:#94a3b8">-- Se vazio, o trigger não rodou. Insira manualmente:</span>
+INSERT INTO profiles (id, nome, email, role)
+SELECT id, 'Seu Nome', email, 'admin'
+FROM auth.users WHERE email = 'seu@email.com';</pre></div>
+    </div>
+    <div class="step">
+      <h3>Upload de fotos não funciona</h3>
+      <p>O bucket <span class="inline-code">os-fotos</span> não foi configurado como público. Supabase → Storage → os-fotos → Policies → <strong>Allow public access</strong>.</p>
+    </div>
+    <div class="step">
+      <h3>Deploy na Vercel dá erro de build</h3>
+      <p>Verifique se as variáveis de ambiente foram adicionadas. O build falha com erro de <span class="inline-code">import.meta.env</span> se <span class="inline-code">VITE_SUPABASE_URL</span> não estiver definida.</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div style="text-align:center;padding:32px 0 0;border-top:1px solid #e2e8f0;color:#94a3b8;font-size:12px">
+    <p><strong style="color:#475569">TecchTI — Soluções de Informática</strong> · Garopaba, Santa Catarina</p>
+    <p style="margin-top:4px">Sistema de Gestão v1.1 · React + Vite + Supabase + Vercel</p>
+  </div>
+
+</div>
+</body>
+</html>
