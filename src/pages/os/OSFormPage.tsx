@@ -289,7 +289,6 @@ export function OSFormPage() {
               )}
             </div>
           </div>
-          </div>
 
           {/* Itens */}
           <div className="card p-5">
