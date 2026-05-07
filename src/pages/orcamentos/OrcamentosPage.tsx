@@ -1,9 +1,10 @@
 import { useEffect, useState, useCallback } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { orcamentosService } from '@/lib/orcamentos'
+import { osService } from '@/lib/os'
 import { formatCurrency, formatDate, searchNormalize, ORCAMENTO_STATUS_BADGE, ORCAMENTO_STATUS_LABEL } from '@/lib/utils'
 import { SearchInput, EmptyState, ErrorState, LoadingPage, Pagination, ConfirmDialog } from '@/components/ui'
-import { FileText, Plus, Eye, Trash2, MessageCircle, Copy, CheckCircle, XCircle } from 'lucide-react'
+import { FileText, Plus, Eye, Trash2, MessageCircle, Copy, CheckCircle, XCircle, ClipboardList } from 'lucide-react'
 import toast from 'react-hot-toast'
 import type { Orcamento, OrcamentoStatus } from '@/types'
 
@@ -55,6 +56,34 @@ export function OrcamentosPage() {
   }, [search, statusFiltro, orcamentos])
 
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE)
+
+  async function handleGerarOS(o: Orcamento) {
+    try {
+      const orcamento = await orcamentosService.getById(o.id)
+      const itens = (orcamento.itens || []).map((i: any) => ({
+        tipo: 'servico' as const,
+        descricao: i.descricao,
+        quantidade: i.quantidade,
+        valor_unit: i.valor_unit,
+        servico_id: i.servico_id || undefined,
+      }))
+      const nova = await osService.create({
+        cliente_id: orcamento.cliente_id,
+        titulo: orcamento.titulo || `OS - ${orcamento.numero}`,
+        descricao: orcamento.descricao || undefined,
+        status: 'aberto',
+        prioridade: 'normal',
+        valor_total: orcamento.total,
+        valor_servico: orcamento.total,
+        valor_materiais: 0,
+        orcamento_id: orcamento.id,
+      }, itens, [])
+      toast.success(`OS #${nova.numero} criada com sucesso!`)
+      navigate(`/os/${nova.id}`)
+    } catch (e: any) {
+      toast.error(e.message || 'Erro ao gerar OS')
+    }
+  }
 
   async function handleDelete() {
     if (!deleteTarget) return
@@ -161,6 +190,9 @@ export function OrcamentosPage() {
                           <Link to={`/orcamentos/${o.id}`} className="btn-icon btn-ghost btn-sm" title="Ver / Editar">
                             <Eye className="w-3.5 h-3.5" />
                           </Link>
+                          <button onClick={() => handleGerarOS(o)} className="btn-icon btn-ghost btn-sm text-brand-600 hover:bg-brand-50" title="Gerar OS">
+                            <ClipboardList className="w-3.5 h-3.5" />
+                          </button>
                           {o.cliente?.whatsapp && (
                             <Link to={`/orcamentos/${o.id}?acao=whatsapp`} className="btn-icon btn-ghost btn-sm text-emerald-600 hover:bg-emerald-50" title="Enviar WhatsApp">
                               <MessageCircle className="w-3.5 h-3.5" />
