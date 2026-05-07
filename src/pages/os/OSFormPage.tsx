@@ -90,6 +90,8 @@ export function OSFormPage() {
   const [dataPrevisao, setDataPrevisao] = useState('')
   const [observacoes, setObservacoes]   = useState('')
   const [formaPagamento, setFormaPagamento] = useState('')
+  const [statusPagamento, setStatusPagamento] = useState<'pendente' | 'parcial' | 'pago'>('pendente')
+  const [valorPago, setValorPago] = useState<number>(0)
 
   // Items
   const [itens, setItens] = useState<ItemForm[]>([])
@@ -163,6 +165,7 @@ export function OSFormPage() {
         valor_materiais: itens.filter(i => i.tipo === 'material').reduce((s, i) => s + i.quantidade * i.valor_unit, 0),
         valor_total: total,
         forma_pagamento: formaPagamento || null,
+        pago: statusPagamento === 'pago',
         observacoes: observacoes.trim() || null,
       } as any
 
@@ -267,6 +270,25 @@ export function OSFormPage() {
                 </select>
               </FormField>
             </div>
+
+            {/* Pagamento */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-surface-100">
+              <FormField label="Status do pagamento">
+                <select className="select" value={statusPagamento} onChange={e => setStatusPagamento(e.target.value as any)}>
+                  <option value="pendente">⏳ Pendente</option>
+                  <option value="parcial">🔸 Parcialmente pago</option>
+                  <option value="pago">✅ Pago</option>
+                </select>
+              </FormField>
+              {statusPagamento === 'parcial' && (
+                <FormField label="Valor já pago (R$)">
+                  <input type="number" min="0" step="0.01" className="input"
+                    value={valorPago} onChange={e => setValorPago(parseFloat(e.target.value) || 0)}
+                    placeholder="0,00" />
+                </FormField>
+              )}
+            </div>
+          </div>
           </div>
 
           {/* Itens */}
